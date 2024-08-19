@@ -1,31 +1,24 @@
 from fastapi import FastAPI, Request, Form
 from fastapi.staticfiles import StaticFiles
 from jinja2_fragments.fastapi import Jinja2Blocks
-from typing import Annotated
-from itertools import count
+from typing import Annotated, Callable
 
+import ipdb
 import json
 import logging as log
 import requests
-
-import http.client as http_client
 import traceback
+
+from .chat_demo_server import ChatDemoServer
+
 
 log.getLogger().setLevel(log.DEBUG)
 log.getLogger("jax").setLevel(log.WARNING)
 log.getLogger("asyncio").setLevel(log.WARNING)
 log.getLogger("multipart.multipart").setLevel(log.WARNING)
 
-def log_http_output():
-    '''Log HTTP input/output to the console'''
-    http_client.HTTPConnection.debuglevel = 1
 
-    log.basicConfig()
-    log.getLogger().setLevel(log.DEBUG)
-    requests_log = log.getLogger("requests.packages.urllib3")
-    requests_log.setLevel(log.DEBUG)
-    requests_log.propagate = True
-log_http_output()
+templates = Jinja2Blocks(directory="src")
 
 genfact_server = '34.44.35.203'
 genfact_server_port = 8888
@@ -47,27 +40,8 @@ business_fields = [
     ]
 joint_fields = physician_fields + business_fields
 
-templates = Jinja2Blocks(directory="src")
-query_counter = count(1)
 
-app = FastAPI()
-app.mount("/static", StaticFiles(directory="dist"), name="static")
-
-@app.get("/")
-async def root(request: Request):
-    context = {} 
-
-    return templates.TemplateResponse(
-        "index.html.jinja",
-        {"request": request, 
-         "idnum": next(query_counter),
-         "root": True,
-        **context},
-    )
-
-
-@app.post("/post_genfact_query")
-async def post_genfact_query(request: Request, english_query: Annotated[str, Form()]):
+async def query1_callback(request: Request, english_query: str, query_counter):
     genfact_url = f"http://{genfact_server}:{genfact_server_port}/sentence-to-doctor-data"
 
     try:
@@ -78,7 +52,6 @@ async def post_genfact_query(request: Request, english_query: Annotated[str, For
         log.debug(f"GenFact response: {response.json()}")
 
         entities = [{'entity_html': k, 'pval': v['likelihood'], **v} for k, v in response.json()['posterior'].items()]
-        # Remove key/value pairs where the value is 'NONE' from the 'as_object' property
         for entity in entities:
             if 'as_object' in entity:
                 entity['as_object'] = {k: v for k, v in entity['as_object'].items() if v != 'NONE'}
@@ -104,29 +77,27 @@ async def post_genfact_query(request: Request, english_query: Annotated[str, For
              "error": f"{e}"
              },
             block_name="query2")
-
-
-
     
-@app.post("/post_pclean_query")
-async def post_pclean_query(request: Request, 
-                            english_query: Annotated[str, Form()], 
-                            genfact_entity: Annotated[str, Form()]):
-    try:
-        genfact_url = f"http://{genfact_server}:{genfact_server_port}/run-pclean"
 
-        # log.debug(f"genfact_entity: {genfact_entity}")
+async def query2_callback(request: Request, query_counter, **kwargs):
+    log.debug(f"Received kwargs: {kwargs}")
+    if int(kwargs.get("dummy", 0)) == 1:
+        return post_pclean_dummy(request, query_counter)
+    
+    try:
+        english_query = kwargs.get('english_query')
+        genfact_entity = kwargs.get('genfact_entity')
+        genfact_url = f"http://{genfact_server}:{genfact_server_port}/run-pclean"
 
         genfact_entity_dict = json.loads(genfact_entity)
         pclean_payload = {"observations": genfact_entity_dict}
         if 'c2z3' in pclean_payload['observations']:
             del pclean_payload['observations']['c2z3']
-        # log.debug(f"pclean payload: {pclean_payload}")
 
         response = requests.post(genfact_url, json=pclean_payload, timeout=90.0)
         pclean_resp = response.json()
 
-        return pclean_row_response(pclean_resp=pclean_resp, request=request, english_query=english_query, genfact_entity=genfact_entity)
+        return pclean_row_response(pclean_resp=pclean_resp, request=request, english_query=english_query, genfact_entity=genfact_entity, query_counter=query_counter)
     
     except Exception as e:
         log.error(f"Error running pclean for genfact_entity (\"{genfact_entity}\") : {e}")
@@ -141,7 +112,14 @@ async def post_pclean_query(request: Request,
             block_name="plot")
     
 
-def pclean_row_response(*, pclean_resp: dict, request, english_query, genfact_entity):
+
+# Create and setup the server
+server = ChatDemoServer(templates, query1_callback, query2_callback)
+server.setup_routes() # Create the default routes
+app = server.get_app() # Expose the app for uvicorn CLI
+
+
+def pclean_row_response(*, pclean_resp: dict, request, english_query, genfact_entity, query_counter):
     log.debug(f"pclean response: {pclean_resp}")
 
     docs, biz, doc_keys, biz_keys = extract_docs_and_biz(pclean_resp).values()
@@ -252,8 +230,7 @@ def normalize_counts(cnt: int, entities: list) -> None:
 
 
 
-@app.post("/post_pclean_dummy")
-async def post_pclean_dummy(request: Request, empty: bool = False):
+def post_pclean_dummy(request: Request, query_counter, empty: bool = False):
     if empty:
         pclean_resp = {
             "businesses_count": 1000,
@@ -524,4 +501,9 @@ async def post_pclean_dummy(request: Request, empty: bool = False):
             }]
         }
 
-    return pclean_row_response(pclean_resp=pclean_resp, request=request, english_query="dummy", genfact_entity="dummy")
+    return pclean_row_response(
+        pclean_resp=pclean_resp, 
+        request=request, 
+        english_query="dummy", 
+        genfact_entity="dummy", 
+        query_counter=query_counter)

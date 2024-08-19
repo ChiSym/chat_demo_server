@@ -192,7 +192,7 @@
         </div>
 
         <section id="inputs" class="grid grid-cols-12 grid-rows-5 justify-stretch items-stretch p-2 gap-y-2 gap-x-4">
-            <form class="col-span-6 row-span-5 grid grid-cols-subgrid grid-rows-subgrid w-full h-full" hx-post="/post_genfact_query" hx-target="#query2">
+            <form class="col-span-6 row-span-5 grid grid-cols-subgrid grid-rows-subgrid w-full h-full" hx-post="/query1" hx-target="#query2">
                 <div class="col-span-6 w-full text-xl font-medium flex items-end text-gray-900 dark:text-white">English</div>
                 <div class="col-span-6 row-span-3 relative">
                     <div class='loading-indicator absolute flex space-x-2 justify-center items-center h-full w-full backdrop-blur-sm rounded-sm border border-gray-300'>
@@ -206,8 +206,9 @@
                 <button id="english_query_button" type="submit" class="col-span-1 col-start-6 bottom-1 right-1 font-medium text-sm px-3 py-1.5 text-white bg-blue-700 rounded-lg focus:ring-4 focus:ring-blue-200">Ask</button>
             </form>
 
-            <form id="query2" class="col-span-6 row-span-5 grid grid-cols-subgrid grid-rows-subgrid w-full h-full" hx-post="/post_pclean_dummy" hx-target="#chat" hx-swap="beforeend scroll:bottom" hx-trigger="submit" hx-include="previous [name='english_query']" hx-on::after-settle="checkAutorun()">
+            <form id="query2" class="col-span-6 row-span-5 grid grid-cols-subgrid grid-rows-subgrid w-full h-full" hx-post="/query2" hx-target="#chat" hx-swap="beforeend scroll:bottom" hx-trigger="submit" hx-include="previous [name='english_query']" hx-on::after-settle="checkAutorun()">
                 {% block query2 %}
+                <input type="hidden" name="dummy" value="1">
                 <input type="hidden" id="genfact_entity" name="genfact_entity" value="{{ ml_entity['as_object'] | tojson | forceescape if ml_entity else '' }}">
                 <div class="col-span-6 w-full text-xl font-medium flex items-end text-gray-900 dark:text-white">GenFact</div>
                 <div class="col-span-6 row-span-3 relative">
