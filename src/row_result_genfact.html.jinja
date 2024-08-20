@@ -1,0 +1,130 @@
+<div id="vis-{{idnum}}" class="col-span-10 row-span-2 w-full h-full overflow-x-auto">
+
+    {# ------------- Physicians ------------- #}
+    <table class="min-w-full table-auto text-left text-sm font-light text-surface dark:text-white">
+        <caption class="caption-top text-xl text-left font-extrabold">Physicians</caption>
+        <thead>
+            <tr class="bg-gray-100">
+                <th scope="col" class="w-32 p-2 text-left text-xs font-medium text-gray-500 capitalize tracking-wide">Histogram</th>
+                {% for key in doc_keys %}
+                    <th scope="col" class="p-2 text-left text-xs font-medium text-gray-500 capitalize tracking-wide">{{ 'NPI' if key == 'npi' else key }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for doc in docs %}
+                <tr class="border-b border-neutral-200 dark:border-white/10"></tr>
+                    <td class="whitespace-nowrap relative p-0">
+                        <div class="w-full h-8 flex justify-end items-stretch bg-gray-200 rounded-none">
+                            <div class="h-8 {{ "bg-red-600" if doc["new_entity"] else "bg-blue-700" }} rounded-none" style="width: {{ (doc['proportion'] * 100)|round(2) }}%"></div>
+                        </div>
+                        <div class="absolute left-1 inset-y-0 h-full text-left text-xs flex flex-col justify-center text-slate-400">
+                            <div>{{ (doc['proportion'] * 100)|round(2) }}%</div>
+                        </div>
+                    </td>
+                    {% if doc["new_entity"] %}
+                        <td colspan="{{ doc_keys|length }}" class="text-center">🙁 Entity not found</td>
+                    {% else %}
+                        {% for key in doc_keys %}
+                            <td class="whitespace-nowrap p-2">
+                                {{ doc.get(key, '') }}
+                            </td>
+                        {% endfor %}
+                    {% endif %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+
+    {# ------------- Businesses ------------- #}
+    <table class="min-w-full table-auto text-left text-sm font-light text-surface dark:text-white mt-2">
+        <caption class="caption-top text-xl text-left font-extrabold">Businesses</caption>
+        <thead>
+            <tr class="bg-gray-100">
+                <th scope="col" class="w-32 p-2 text-left text-xs font-medium text-gray-500 capitalize tracking-wide">Histogram</th>
+                {% for key in biz_keys %}
+                    <th scope="col" class="p-2 text-left text-xs font-medium text-gray-500 capitalize tracking-wide">{{ 'Legal Name' if key == 'legal_name' else key }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for biz in biz %}
+                <tr class="border-b border-neutral-200 dark:border-white/10"></tr>
+                    <td class="whitespace-nowrap relative p-0">
+                        <div class="w-full h-8 flex justify-end items-stretch bg-gray-200 rounded-none">
+                            <div class="h-8 {{ "bg-red-600" if biz["new_entity"] else "bg-blue-700" }} rounded-none" style="width: {{ (biz['proportion'] * 100)|round(2) }}%"></div>
+                        </div>
+                        <div class="absolute left-1 inset-y-0 h-full text-left text-xs flex flex-col justify-center text-slate-400">
+                            <div>{{ (biz['proportion'] * 100)|round(2) }}%</div>
+                        </div>
+                    </td>
+                    {% if biz["new_entity"] %}
+                        <td colspan="{{ biz_keys|length }}" class="text-center">🙁 Entity not found</td>
+                    {% else %}
+                        {% for key in biz_keys %}
+                            <td class="whitespace-nowrap p-2">
+                                {{ biz.get(key, '') }}
+                            </td>
+                        {% endfor %}
+                    {% endif %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {# ------------- Joint ------------- #}
+    <table class="min-w-full table-auto text-left text-sm font-light text-surface dark:text-white mt-2">
+        <caption class="caption-top text-xl text-left font-extrabold">Joint</caption>
+        <thead>
+            <tr class="bg-gray-100 text-md text-center">
+                <th scope="col" class="w-32 bg-transparent"></th>
+                <th scope="col" colspan="{{ doc_keys|length }}"" class="p-2 font-medium text-gray-500 capitalize tracking-wide">Physician</th>
+                <th scope="col" colspan="{{ biz_keys|length }}" class="p-2 font-medium text-gray-500 capitalize tracking-wide">Business</th>
+            </tr>
+            <tr class="bg-gray-100">
+                <th scope="col" class="p-2 text-left text-xs font-medium text-gray-500 capitalize tracking-wide">Histogram</th>
+                {% for key in joint_fields %}
+                    <th scope="col" class="p-2 text-left text-xs font-medium text-gray-500 capitalize tracking-wide">{{ 'NPI' if key == 'npi' else 'Legal Name' if key == 'legal_name' else key }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for joint_ent in joint %}
+                <tr class="border-b border-neutral-200 dark:border-white/10"></tr>
+                    <td class="whitespace-nowrap relative p-0">
+                        <div class="w-full h-8 flex justify-end items-stretch bg-gray-200 rounded-none">
+                            <div class=" {{ "bg-red-600" if joint_ent["doc_new_ent"] and joint_ent["biz_new_ent"] else "bg-blue-700" }} rounded-none" style="width: {{ (joint_ent['proportion'] * 100)|round(2) }}%"></div>
+                        </div>
+                        <div class="absolute left-1 inset-y-0 h-full text-left text-xs flex flex-col justify-center text-slate-400">
+                            <div>{{ (joint_ent['proportion'] * 100)|round(2) }}%</div>
+                        </div>
+                    </td>
+                    {% if joint_ent["doc_new_ent"] and joint_ent["biz_new_ent"] %}
+                        <td colspan="{{ joint_keys|length }}" class="text-center">🙁 Entity not found</td>
+                    {% else %}
+                        {% if joint_ent["doc_new_ent"]%}
+                            <td colspan="{{ doc_keys|length }}" class="text-center">🙁 Entity not found</td>                                                        
+                        {% else %}
+                            {% for key in doc_keys %}
+                                <td class="whitespace-nowrap p-2">
+                                    {{ joint_ent.get(key, '') }}
+                                </td>
+                            {% endfor %}
+                        {% endif %}
+
+                        {% if joint_ent["biz_new_ent"]%}
+                            <td colspan="{{ biz_keys|length }}" class="text-center">🙁 Entity not found</td>                                                        
+                        {% else %}
+                            {% for key in biz_keys %}
+                                <td class="whitespace-nowrap p-2">
+                                    {{ joint_ent.get(key, '') }}
+                                </td>
+                            {% endfor %}
+                        {% endif %}
+                    {% endif %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

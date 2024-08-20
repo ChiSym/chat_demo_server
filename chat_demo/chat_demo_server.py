@@ -23,12 +23,13 @@ log_http_output()
 
 
 class ChatDemoServer:
-    def __init__(self, templates: Jinja2Blocks, query1_callback: Callable, query2_callback: Callable):
+    def __init__(self, templates: Jinja2Blocks, default_context: dict, query1_callback: Callable, query2_callback: Callable):
         self.app = FastAPI()
         self.app.mount("/static", StaticFiles(directory="dist"), name="static")
         self.query_counter = count(1)
 
         self.templates = templates
+        self.default_context = default_context
         self.query1_callback = query1_callback
         self.query2_callback = query2_callback
 
@@ -43,13 +44,12 @@ class ChatDemoServer:
         
         @self.app.get("/")
         async def root(request: Request):
-            context = {}
             return self.templates.TemplateResponse(
                 "index.html.jinja",
+                self.default_context | 
                 {"request": request, 
                  "idnum": next(self.query_counter),
-                 "root": True,
-                **context},
+                 "root": True},
             )
 
         @self.app.post("/query1")

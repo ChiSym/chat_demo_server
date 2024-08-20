@@ -40,6 +40,11 @@ business_fields = [
     ]
 joint_fields = physician_fields + business_fields
 
+default_context = {"page_title": "GenFact demo",
+                   "english_query_placeholder": "Provide a short sentence containing mentions of doctors",
+                   "row_result_template": "row_result_genfact.html.jinja",
+                   "query2_template": "query2_genfact.html.jinja"}
+
 
 async def query1_callback(request: Request, english_query: str, query_counter):
     genfact_url = f"http://{genfact_server}:{genfact_server_port}/sentence-to-doctor-data"
@@ -59,6 +64,7 @@ async def query1_callback(request: Request, english_query: str, query_counter):
 
         return templates.TemplateResponse(
             "index.html.jinja",
+            default_context | 
             {"request": request, 
             "idnum": next(query_counter),
             "ml_entity": entities[0],
@@ -70,6 +76,7 @@ async def query1_callback(request: Request, english_query: str, query_counter):
         log.error(f"Error in GenParse on English query (\"{english_query}\") : {e}")
         return templates.TemplateResponse(
             "index.html.jinja",
+            default_context | 
             {"request": request, 
              "idnum": next(query_counter),
              "ml_entity": None,
@@ -87,6 +94,7 @@ async def query2_callback(request: Request, query_counter, **kwargs):
     try:
         english_query = kwargs.get('english_query')
         genfact_entity = kwargs.get('genfact_entity')
+        entity_html = kwargs.get('entity_html')
         genfact_url = f"http://{genfact_server}:{genfact_server_port}/run-pclean"
 
         genfact_entity_dict = json.loads(genfact_entity)
@@ -97,13 +105,14 @@ async def query2_callback(request: Request, query_counter, **kwargs):
         response = requests.post(genfact_url, json=pclean_payload, timeout=90.0)
         pclean_resp = response.json()
 
-        return pclean_row_response(pclean_resp=pclean_resp, request=request, english_query=english_query, genfact_entity=genfact_entity, query_counter=query_counter)
+        return pclean_row_response(pclean_resp=pclean_resp, request=request, english_query=english_query, genfact_entity=genfact_entity, entity_html=entity_html, query_counter=query_counter)
     
     except Exception as e:
         log.error(f"Error running pclean for genfact_entity (\"{genfact_entity}\") : {e}")
         traceback.print_exception(e)
         return templates.TemplateResponse(
             "index.html.jinja",
+            default_context | 
             {"request": request, 
              "idnum": next(query_counter),
              "genfact_entity": genfact_entity,
@@ -114,12 +123,12 @@ async def query2_callback(request: Request, query_counter, **kwargs):
 
 
 # Create and setup the server
-server = ChatDemoServer(templates, query1_callback, query2_callback)
+server = ChatDemoServer(templates, default_context, query1_callback, query2_callback)
 server.setup_routes() # Create the default routes
 app = server.get_app() # Expose the app for uvicorn CLI
 
 
-def pclean_row_response(*, pclean_resp: dict, request, english_query, genfact_entity, query_counter):
+def pclean_row_response(*, pclean_resp: dict, request, english_query, genfact_entity, entity_html, query_counter):
     log.debug(f"pclean response: {pclean_resp}")
 
     docs, biz, doc_keys, biz_keys = extract_docs_and_biz(pclean_resp).values()
@@ -133,6 +142,7 @@ def pclean_row_response(*, pclean_resp: dict, request, english_query, genfact_en
 
     return templates.TemplateResponse(
         "index.html.jinja",
+        default_context | 
         {"request": request, 
         "idnum": next(query_counter),
         "physician_fields": physician_fields,
@@ -140,6 +150,7 @@ def pclean_row_response(*, pclean_resp: dict, request, english_query, genfact_en
         "joint_fields": joint_fields,
         "english_query": english_query,
         "genfact_entity": genfact_entity,
+        "query2_html": entity_html,
         "docs": docs,
         "biz": biz,
         "joint": joint,
@@ -506,4 +517,5 @@ def post_pclean_dummy(request: Request, query_counter, empty: bool = False):
         request=request, 
         english_query="dummy", 
         genfact_entity="dummy", 
+        entity_html="<span style='color: red'>dummy</span>",
         query_counter=query_counter)

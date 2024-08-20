@@ -1,0 +1,267 @@
+{# The block inside query2 #}
+<input type="hidden" name="dummy" value="0">
+<input type="hidden" id="genfact_entity" name="genfact_entity" value="{{ ml_entity['as_object'] | tojson | forceescape if ml_entity else '' }}">
+<input type="hidden" id="entity_html" name="entity_html" value="{{ ml_entity['entity_html'] | e if ml_entity else '' }}">
+<div class="col-span-6 w-full text-xl font-medium flex items-end text-gray-900 dark:text-white">GenFact</div>
+<div class="col-span-6 row-span-3 relative">
+    <div class='loading-indicator absolute flex space-x-2 justify-center items-center h-full w-full backdrop-blur-sm'>
+        <span class='sr-only'>Loading...</span>
+        <div class='h-8 w-8 bg-gray-500 rounded-full animate-bounce [animation-delay:-0.3s]'></div>
+        <div class='h-8 w-8 bg-gray-500 rounded-full animate-bounce [animation-delay:-0.15s]'></div>
+        <div class='h-8 w-8 bg-gray-500 rounded-full animate-bounce'></div>
+    </div>
+    <div id="query2-div" class="w-full h-full p-2 text-gray-900  rounded-sm border border-gray-300 focus:ring-blue-500 focus:border-blue-500 resize-none">
+        {% if ml_entity %}
+            {% if ml_entity|length > 0 %}
+                {{ ml_entity.entity_html | safe }}
+            {% else %}
+                <div class="text-red-500">
+                    No entities returned
+                </div>
+            {% endif %}
+        {% elif error %}
+            <div class="text-red-500">
+                Error: {{ error }}
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="col-span-6 grid grid-cols-subgrid grid-rows-subgrid justify-between p-0">
+    <div id="qpbar" class="col-span-2"></div>
+    <script>
+        // Array of maps of generated entities and pvals. 
+        var query2Vals = {{ genfact_entities | default([]) | tojson | safe }};
+
+        var vegaSpec = {
+            "$schema": "https://vega.github.io/schema/vega/v5.json",
+            "width": 100,
+            "height": 50,
+            "autosize": "fit-y",
+            "data": [
+                {
+                    "name": "source",
+                    "values": query2Vals
+                },
+                {
+                    "name": "selected",
+                    "source": "source",
+                    "transform": [
+                        {
+                            "type": "filter",
+                            "expr": "datum.selected"
+                        }
+                    ]
+                }
+            ],
+            "signals": [
+                {
+                    "name": "tooltip",
+                    "value": {},
+                    "on": [
+                        {
+                            "events": "rect:mouseover",
+                            "update": "datum"
+                        },
+                        {
+                            "events": "rect:mouseout",
+                            "update": "{}"
+                        }
+                    ]
+                },
+                {
+                    "name": "highlight",
+                    "value": null,
+                    "on": [
+                        {
+                            "events": "mouseover",
+                            "update": "datum"
+                        },
+                        {
+                            "events": "mouseout",
+                            "update": "null"
+                        }
+                    ]
+                },
+                {
+                    "name": "select",
+                    "init": 'data("source")[0]', // They better be ordered...
+                    "on": [
+                        {
+                            "events": "click",
+                            "update": "datum === select ? null : datum"
+                        }
+                    ]
+                }
+            ],
+            "scales": [
+                {
+                    "name": "x",
+                    "type": "band",
+                    "domain": {
+                        "data": "source",
+                        "field": "entity_html"
+                    },
+                    "range": "width",
+                    "padding": 0.2
+                },
+                {
+                    "name": "y",
+                    "type": "linear",
+                    "domain": [0, 1],
+                    "range": "height",
+                    "nice": true,
+                    "zero": true,
+                    "clamp": true
+                }
+            ],
+            "axes": [
+                {
+                    "orient": "bottom",
+                    "scale": "x",
+                    "labels": false,
+                    "ticks": false
+                },
+                {
+                    "orient": "left",
+                    "scale": "y",
+                    "ticks": false,
+                    "labels": false
+                }
+            ],
+            "marks": [
+                {
+                    "type": "rect",
+                    "from": {
+                        "data": "source"
+                    },
+                    "encode": {
+                        "enter": {
+                            "x": {
+                                "scale": "x",
+                                "field": "entity_html"
+                            },
+                            "width": {
+                                "scale": "x",
+                                "band": 1
+                            },
+                            "y2": {
+                                "scale": "y",
+                                "signal": "max(datum.pval, 0.1)"
+                            },
+                            "y": {
+                                "scale": "y",
+                                "value": 0
+                            },
+                            "fill": {
+                                "value": "#4C78A8"
+                            },
+                            "stroke": {
+                                "value": "black"
+                            },
+                            "cursor": {
+                                "value": "pointer"
+                            }
+                        },
+                        "update": {
+                            "fillOpacity": [
+                                {
+                                    "test": "datum === select",
+                                    "value": 1
+                                },
+                                {
+                                    "value": 0.3
+                                }
+                            ],
+                            "strokeWidth": [
+                                {
+                                    "test": "datum === select",
+                                    "value": 2
+                                },
+                                {
+                                    "test": "datum === highlight",
+                                    "value": 1
+                                },
+                                {
+                                    "value": 0
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "type": "text",
+                    "encode": {
+                        "enter": {
+                            "align": {
+                                "value": "center"
+                            },
+                            "baseline": {
+                                "value": "bottom"
+                            },
+                            "fill": {
+                                "value": "#333"
+                            }
+                        },
+                        "update": {
+                            "x": {
+                                "scale": "x",
+                                "signal": "tooltip.entity_html",
+                                "band": 0.5
+                            },
+                            "y": {
+                                "scale": "y",
+                                "signal": "tooltip.pval",
+                                "offset": -2
+                            },
+                            "text": {
+                                "signal": "tooltip.pval ? format(tooltip.pval, '.2~e') : ''"
+                            },
+                            "fillOpacity": [
+                                {
+                                    "test": "isNaN(tooltip.pval)",
+                                    "value": 0
+                                },
+                                {
+                                    "value": 1
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        };
+
+        {# Attach a signal listener to update the genfact entity div when an uncertainty bar is clicked #}
+        if (query2Vals.length > 0) {
+            vegaEmbed("#qpbar", vegaSpec, {"renderer": "svg", "actions": false}).then(result => {
+                result.view.addSignalListener('select', (name, value) => {
+                    if (value) {
+                        document.getElementById("query2-div").innerHTML = value.entity_html;
+                        document.getElementById("genfact_entity").value = JSON.stringify(value.as_object);
+                    }
+                });
+            });
+        }
+
+        {# Check the value of incoming query2Vals to see if any cross the autorun thr, and if so, run it #}
+        (function checkAutorun() {
+            console.debug("Checking autorun threshold");
+
+            var autorunPvalThreshold = parseFloat(document.getElementById("autorunPvalThreshold")?.value ?? '1');
+            console.debug("Autorun threshold:", autorunPvalThreshold);
+            if (query2Vals?.[0]?.pval >= autorunPvalThreshold) {
+                console.info("Autorunning query:", query2Vals[0]);
+                // Can't just call form.submit(), it will reload the whole page
+                htmx.trigger(document.getElementById("query2"), "submit"); 
+            } else {
+                console.info("No queries met or exceed thr with p>=", autorunPvalThreshold);
+            }
+        })()
+    </script>
+    <div class="col-span-3">
+        <label for="autorunPvalThreshold" class="block text-sm font-medium text-gray-900 dark:text-white">Autorun threshold</label>
+        <input id="autorunPvalThreshold" hx-preserve type="range" class="transparent h-[4px] w-full cursor-pointer border-transparent bg-neutral-200 dark:bg-neutral-600" min="0" max="1" step="0.01" value="0.6" />
+    </div>
+    <button id="query2_button" type="submit" class="col-span-1 bottom-1 right-1 font-medium text-sm px-3 py-1.5 text-white bg-blue-700 rounded-lg focus:ring-4 focus:ring-blue-200">Run</button>
+</div>
