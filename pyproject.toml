@@ -4,6 +4,11 @@ version = "0.1.0"
 description = ""
 authors = ["Matthew Davidson <matthew@modulolotus.net>"]
 readme = "README.md"
+packages = [{include = "chat_demo"}]
+include = [
+    { path = "src/index.html.jinja"},
+    { path = "dist/"},
+]
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.13"
