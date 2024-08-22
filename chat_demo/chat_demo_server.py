@@ -4,11 +4,14 @@ from fastapi.staticfiles import StaticFiles
 from jinja2_fragments.fastapi import Jinja2Blocks
 from typing import Annotated, Callable
 from itertools import count
+from pathlib import Path
+
 
 import ipdb
 import jinja2
 import logging as log
 import http.client as http_client
+
 
 def log_http_output():
     '''Log HTTP input/output to the console'''
@@ -44,9 +47,11 @@ class ChatDemoServer:
         :param templates_path: A string or path to the templates directory
         :return: Jinja2Blocks instance
         """
-
+        current_dir = Path(__file__).resolve().parent
+        module_src_dir = current_dir.parent / "src"
+       
         loader = jinja2.ChoiceLoader([
-            jinja2.FileSystemLoader("src"),
+            jinja2.FileSystemLoader(module_src_dir),
             jinja2.FileSystemLoader(templates_path)
         ])
         return Jinja2Blocks(directory="IGNORE THIS", loader=loader)
