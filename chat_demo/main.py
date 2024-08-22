@@ -3,7 +3,7 @@ from fastapi.staticfiles import StaticFiles
 from jinja2_fragments.fastapi import Jinja2Blocks
 from typing import Annotated, Callable
 
-import ipdb
+import jinja2
 import json
 import logging as log
 import requests
@@ -17,8 +17,7 @@ log.getLogger("jax").setLevel(log.WARNING)
 log.getLogger("asyncio").setLevel(log.WARNING)
 log.getLogger("multipart.multipart").setLevel(log.WARNING)
 
-
-templates = Jinja2Blocks(directory="src")
+templates = ChatDemoServer.get_templates("src")
 
 genfact_server = '34.44.35.203'
 genfact_server_port = 8888

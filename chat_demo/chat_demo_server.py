@@ -6,6 +6,7 @@ from typing import Annotated, Callable
 from itertools import count
 
 import ipdb
+import jinja2
 import logging as log
 import http.client as http_client
 
@@ -32,6 +33,24 @@ class ChatDemoServer:
         self.default_context = default_context
         self.query1_callback = query1_callback
         self.query2_callback = query2_callback
+
+    @staticmethod
+    def get_templates(templates_path: str):
+        """
+        Create and return a Jinja2Blocks instance for the given templates path, 
+        including the chat-demo's templates. Children cannot override the main
+        index.html.jinja template. (Rename the child template if you need that.)
+        
+        :param templates_path: A string or path to the templates directory
+        :return: Jinja2Blocks instance
+        """
+
+        loader = jinja2.ChoiceLoader([
+            jinja2.FileSystemLoader("src"),
+            jinja2.FileSystemLoader(templates_path)
+        ])
+        return Jinja2Blocks(directory="IGNORE THIS", loader=loader)
+
 
     def setup_routes(self):
         @self.app.exception_handler(Exception)
