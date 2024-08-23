@@ -40,6 +40,8 @@ business_fields = [
 joint_fields = physician_fields + business_fields
 
 default_context = {"page_title": "GenFact demo",
+                   # "extra_js_scripts": "<script>console.log('foo')</script>",
+                   # "extra_css": "<style>button {color: red !important}</style>",
                    "english_query_placeholder": "Provide a short sentence containing mentions of doctors",
                    "row_result_template": "row_result_genfact.html.jinja",
                    "query2_template": "query2_genfact.html.jinja"}

@@ -38,8 +38,8 @@
             display:flex;
         }
     </style>
-
-
+    {{ extra_js_scripts | default('') | safe }}
+    {{ extra_css | default('') | safe }}
 </head>
 <body>
     <main class="h-dvh flex flex-col flex-nowrap justify-between gap-4 p-2 lg:container lg:mx-auto">
