@@ -47,13 +47,13 @@
             {% block plot %}
                 {% if not root %}
                     <div id="row-{{idnum}}" class="grid gap-4 grid-cols-12 grid-rows-2 grid-flow-col p-2 justify-self-end even:bg-slate-50">
-                        <div id="english-{{idnum}}" class="col-span-2 whitespace-pre-wrap">{{ english_query | default("") }}</div>
-                        <div id="query2-{{idnum}}" class="col-span-2">{{ query2_html | default("") | safe }}</div>
-                            {% if error %}
-                                <div id="vis-{{idnum}}" class="col-span-10 row-span-2 text-red-500">Error: {{ error }}</div>
-                            {% else %}
-                                {% include row_result_template %}
-                            {% endif %} 
+                        <div id="english-{{idnum}}" class="col-span-2 whitespace-pre-wrap {{ "text-amber-800" if query2_modified == '1' }}">{{ english_query | default("") }}</div>
+                        <div id="query2-{{idnum}}" class="col-span-2">{{ query2_html | default("") | safe }}{{ "<br><span class='text-xs text-amber-800'>(NB: manually modified/entered.)</span>" | safe if query2_modified == '1' }}</div>
+                        {% if error %}
+                            <div id="vis-{{idnum}}" class="col-span-10 row-span-2 text-red-500">Error: {{ error }}</div>
+                        {% else %}
+                            {% include row_result_template %}
+                        {% endif %} 
                         <script type="text/javascript">
                             document.getElementById("vis-{{idnum}}").scrollIntoView({behavior: "smooth", block: "end", inline: "nearest"});
                         </script>

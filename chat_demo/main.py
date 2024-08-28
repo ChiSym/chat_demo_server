@@ -96,6 +96,9 @@ async def query2_callback(request: Request, query_counter, **kwargs):
         english_query = kwargs.get('english_query')
         genfact_entity = kwargs.get('genfact_entity')
         entity_html = kwargs.get('entity_html')
+        query2_modified = kwargs.get('query2_modified')
+        log.debug(f"query2_modified: {query2_modified}")
+
         genfact_url = f"http://{genfact_server}:{genfact_server_port}/run-pclean"
 
         genfact_entity_dict = json.loads(genfact_entity)
@@ -106,7 +109,7 @@ async def query2_callback(request: Request, query_counter, **kwargs):
         response = requests.post(genfact_url, json=pclean_payload, timeout=90.0)
         pclean_resp = response.json()
 
-        return pclean_row_response(pclean_resp=pclean_resp, request=request, english_query=english_query, genfact_entity=genfact_entity, entity_html=entity_html, query_counter=query_counter)
+        return pclean_row_response(pclean_resp=pclean_resp, request=request, english_query=english_query, genfact_entity=genfact_entity, entity_html=entity_html, query_counter=query_counter, query2_modified=query2_modified)
     
     except Exception as e:
         log.error(f"Error running pclean for genfact_entity (\"{genfact_entity}\") : {e}")
@@ -117,6 +120,7 @@ async def query2_callback(request: Request, query_counter, **kwargs):
             {"request": request, 
              "idnum": next(query_counter),
              "genfact_entity": genfact_entity,
+             "query2_modified": query2_modified,
              "error": f"{e}"
              },
             block_name="plot")
@@ -129,7 +133,7 @@ server.setup_routes() # Create the default routes
 app = server.get_app() # Expose the app for uvicorn CLI
 
 
-def pclean_row_response(*, pclean_resp: dict, request, english_query, genfact_entity, entity_html, query_counter):
+def pclean_row_response(*, pclean_resp: dict, request, english_query, genfact_entity, entity_html, query_counter, query2_modified):
     log.debug(f"pclean response: {pclean_resp}")
 
     docs, biz, doc_keys, biz_keys = extract_docs_and_biz(pclean_resp).values()
@@ -157,7 +161,8 @@ def pclean_row_response(*, pclean_resp: dict, request, english_query, genfact_en
         "joint": joint,
         "doc_keys": doc_keys,
         "biz_keys": biz_keys,
-        "joint_keys": joint_keys
+        "joint_keys": joint_keys,
+        "query2_modified": query2_modified
         },
         block_name="plot")
 
@@ -519,4 +524,5 @@ def post_pclean_dummy(request: Request, query_counter, empty: bool = False):
         english_query="dummy", 
         genfact_entity="dummy", 
         entity_html="<span style='color: red'>dummy</span>",
-        query_counter=query_counter)
+        query_counter=query_counter,
+        query2_modified='0')

@@ -1,5 +1,6 @@
 {# The block inside query2 #}
-<input type="hidden" name="dummy" value="0">
+<input type="hidden" name="dummy" value="1">
+<input type="hidden" name="query2_modified" value="1">
 <input type="hidden" id="genfact_entity" name="genfact_entity" value="{{ ml_entity['as_object'] | tojson | forceescape if ml_entity else '' }}">
 <input type="hidden" id="entity_html" name="entity_html" value="{{ ml_entity['entity_html'] | e if ml_entity else '' }}">
 <div class="col-span-6 w-full text-xl font-medium flex items-end text-gray-900 dark:text-white">GenFact</div>
