@@ -1,5 +1,4 @@
 from fastapi import FastAPI, Request, Form
-from fastapi.staticfiles import StaticFiles
 from jinja2_fragments.fastapi import Jinja2Blocks
 from typing import Annotated, Callable
 
@@ -19,8 +18,6 @@ log.getLogger("multipart.multipart").setLevel(log.WARNING)
 
 templates = ChatDemoServer.get_templates("src")
 
-genfact_server = '34.44.35.203'
-genfact_server_port = 8888
 
 physician_fields = [
     "first",
@@ -48,16 +45,40 @@ default_context = {"page_title": "GenFact demo",
 
 
 async def query1_callback(request: Request, english_query: str, query_counter):
-    genfact_url = f"http://{genfact_server}:{genfact_server_port}/sentence-to-doctor-data"
 
     try:
-        response = requests.post(genfact_url, 
-                                 json={"sentence": english_query},
-                                 timeout=90.0)
+        sample_response = json.loads('''
+            {
+                "posterior": {
+                    "<style>\\n  .extracted_firstname { color: red; }\\n  .extracted_lastname { color: blue; }\\n  .extracted_specialty { color: green; }\\n  .extracted_legalname { color: orange; }\\n  .extracted_address { color: yellow; }\\n  .extracted_address2 { color: purple; }\\n  .extracted_c2z3 { color: violet; }</style><p><span class=\\"extracted_firstname\\">John</span> <span class=\\"extracted_lastname\\">Smith</span>'s <span class=\\"extracted_specialty\\">neurology</span> office (<span class=\\"extracted_legalname\\">Happy Brain Serviecs LLC</span> at <span class=\\"extracted_address\\">512 Example Street</span> <span class=\\"extracted_address2\\">Suite 3600</span> (<span class=\\"extracted_c2z3\\">CA-170</span>) is terrible!": {
+                        "likelihood": 0.7,
+                        "as_object": {
+                            "first_name": "John",
+                            "last_name": "Smith",
+                            "specialty": "neurology",
+                            "legal_name": "Happy Brain Services LLC",
+                            "address": "512 Example Street",
+                            "address2": "Suite 3600",
+                            "c2z3": "CA-170"
+                        }
+                    },
+                    "<style>\\n  .extracted_firstname { color: red; }\\n  .extracted_lastname { color: blue; }\\n  .extracted_specialty { color: green; }\\n  .extracted_legalname { color: orange; }\\n  .extracted_address { color: yellow; }\\n  .extracted_address2 { color: purple; }\\n  .extracted_c2z3 { color: violet; }</style><p><span class=\\"extracted_firstname\\">John</span> <span class=\\"extracted_lastname\\">Smith</span>'s <span class=\\"extracted_specialty\\">neurology</span> office (<span class=\\"extracted_legalname\\">Happy Brain Serviecs LLC</span> at <span class=\\"extracted_address\\">512 Example Street Suite 3600</span> (<span class=\\"extracted_c2z3\\">CA-170</span>) is terrible!": {
+                        "likelihood": 0.3,
+                        "as_object": {
+                            "first_name": "John",
+                            "last_name": "Smith",
+                            "specialty": "neurology",
+                            "legal_name": "Happy Brain Services LLC",
+                            "address": "512 Example Street Suite 3600",
+                            "address2": "",
+                            "c2z3": "CA-170"
+                        }
+                    }
+                }
+            }
+                                     ''')
 
-        log.debug(f"GenFact response: {response.json()}")
-
-        entities = [{'entity_html': k, 'pval': v['likelihood'], **v} for k, v in response.json()['posterior'].items()]
+        entities = [{'entity_html': k, 'pval': v['likelihood'], **v} for k, v in sample_response['posterior'].items()]
         for entity in entities:
             if 'as_object' in entity:
                 entity['as_object'] = {k: v for k, v in entity['as_object'].items() if v != 'NONE'}
@@ -74,6 +95,9 @@ async def query1_callback(request: Request, english_query: str, query_counter):
         )
         
     except Exception as e:
+        import ipdb 
+        ipdb.set_trace()
+
         log.error(f"Error in GenParse on English query (\"{english_query}\") : {e}")
         return templates.TemplateResponse(
             "index.html.jinja",
@@ -89,42 +113,7 @@ async def query1_callback(request: Request, english_query: str, query_counter):
 
 async def query2_callback(request: Request, query_counter, **kwargs):
     log.debug(f"Received kwargs: {kwargs}")
-    if int(kwargs.get("dummy", 0)) == 1:
-        return post_pclean_dummy(request, query_counter)
-    
-    try:
-        english_query = kwargs.get('english_query')
-        genfact_entity = kwargs.get('genfact_entity')
-        entity_html = kwargs.get('entity_html')
-        query2_modified = kwargs.get('query2_modified')
-        log.debug(f"query2_modified: {query2_modified}")
-
-        genfact_url = f"http://{genfact_server}:{genfact_server_port}/run-pclean"
-
-        genfact_entity_dict = json.loads(genfact_entity)
-        pclean_payload = {"observations": genfact_entity_dict}
-        if 'c2z3' in pclean_payload['observations']:
-            del pclean_payload['observations']['c2z3']
-
-        response = requests.post(genfact_url, json=pclean_payload, timeout=90.0)
-        pclean_resp = response.json()
-
-        return pclean_row_response(pclean_resp=pclean_resp, request=request, english_query=english_query, genfact_entity=genfact_entity, entity_html=entity_html, query_counter=query_counter, query2_modified=query2_modified)
-    
-    except Exception as e:
-        log.error(f"Error running pclean for genfact_entity (\"{genfact_entity}\") : {e}")
-        traceback.print_exception(e)
-        return templates.TemplateResponse(
-            "index.html.jinja",
-            default_context | 
-            {"request": request, 
-             "idnum": next(query_counter),
-             "genfact_entity": genfact_entity,
-             "query2_modified": query2_modified,
-             "error": f"{e}"
-             },
-            block_name="plot")
-    
+    return post_pclean_dummy(request, query_counter)
 
 
 # Create and setup the server
