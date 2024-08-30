@@ -15,12 +15,15 @@ from chat_demo.chat_demo_server import ChatDemoServer
 
 templates = ChatDemoServer.get_templates("your_template_directory")
 
+# Set the variables to customize your chat_demo server
+# (For more overridable blocks and vars, see the index.html.jinja template)
 default_context = {"page_title": "My demo's name",
-                   "extra_js_scripts": "<script goes here..."
+                   "extra_js_scripts": "<script goes here before closing body tag..."
                    "extra_css": "<style goes here...",
                    "english_query_placeholder": "Ask your question in plain English",
                    "row_result_template": "row_result_my_demo.html.jinja", # the name of your row result template file
                    "query2_template": "query2_my_demo.html.jinja"} # the name of your query2 template file
+                
 
 async def query1_callback(request: Request, english_query: str, query_counter):
     '''This callback will handle the first, plain English query. 
@@ -35,7 +38,12 @@ async def query2_callback(request: Request, query_counter, **kwargs):
     ...
 
 # Create and setup the server
-server = ChatDemoServer(templates, default_context, query1_callback, query2_callback)
+server = ChatDemoServer(
+    templates=templates,
+    default_context=default_context,
+    query1_callback=query1_callback,
+    query2_callback=query2_callback
+)
 server.setup_routes() # Create the default routes
 app = server.get_app() # Expose the app for uvicorn CLI
 ```
@@ -48,6 +56,5 @@ For examples, see the genfact_demo and english_to_iql_demo repos.
 1. Install [poetry](https://python-poetry.org/docs/#installation)
 2. `poetry install`
 3. `poetry shell`
-4. `npm install`
 
 5. To start the web server, run `uvicorn chat_demo.main:app --reload`

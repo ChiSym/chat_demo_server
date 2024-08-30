@@ -16,6 +16,7 @@ log.getLogger("jax").setLevel(log.WARNING)
 log.getLogger("asyncio").setLevel(log.WARNING)
 log.getLogger("multipart.multipart").setLevel(log.WARNING)
 
+root_template = "index.html.jinja"
 templates = ChatDemoServer.get_templates("src")
 
 
@@ -85,7 +86,7 @@ async def query1_callback(request: Request, english_query: str, query_counter):
         entities.sort(key=lambda x: x['pval'], reverse=True)
 
         return templates.TemplateResponse(
-            "index.html.jinja",
+            root_template,
             default_context | 
             {"request": request, 
             "idnum": next(query_counter),
@@ -100,7 +101,7 @@ async def query1_callback(request: Request, english_query: str, query_counter):
 
         log.error(f"Error in GenParse on English query (\"{english_query}\") : {e}")
         return templates.TemplateResponse(
-            "index.html.jinja",
+            root_template,
             default_context | 
             {"request": request, 
              "idnum": next(query_counter),
@@ -117,7 +118,12 @@ async def query2_callback(request: Request, query_counter, **kwargs):
 
 
 # Create and setup the server
-server = ChatDemoServer(templates, default_context, query1_callback, query2_callback)
+server = ChatDemoServer(
+    templates=templates,
+    default_context=default_context,
+    query1_callback=query1_callback,
+    query2_callback=query2_callback
+)
 server.setup_routes() # Create the default routes
 app = server.get_app() # Expose the app for uvicorn CLI
 
@@ -135,7 +141,7 @@ def pclean_row_response(*, pclean_resp: dict, request, english_query, genfact_en
     joint_keys = joint_fields + list(joint_keys - set(joint_fields))
 
     return templates.TemplateResponse(
-        "index.html.jinja",
+        root_template,
         default_context | 
         {"request": request, 
         "idnum": next(query_counter),

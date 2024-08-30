@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>{{ page_title| default("Probcomp demo") | e }}</title>
+    <title>{{ page_title| default("Chat demo") | e }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://unpkg.com/htmx.org@1.9.6" integrity="sha384-FhXw7b6AlE/jyjlZH5iHa/tTe9EpJ1Y55RjcgPbjeWMskSxZt1v9qkxLJWNJaGni" crossorigin="anonymous"></script>
     <script type="importmap">
@@ -38,8 +38,8 @@
             display:flex;
         }
     </style>
-    {{ extra_js_scripts | default('') | safe }}
     {{ extra_css | default('') | safe }}
+    {{ extra_head_js_scripts | default('') | safe }}
 </head>
 <body>
     <main class="h-dvh flex flex-col flex-nowrap justify-between gap-4 p-2 lg:container lg:mx-auto">
@@ -47,42 +47,64 @@
             {% block plot %}
                 {% if not root %}
                     <div id="row-{{idnum}}" class="grid gap-4 grid-cols-12 grid-rows-2 grid-flow-col p-2 justify-self-end even:bg-slate-50">
-                        <div id="english-{{idnum}}" class="col-span-2 whitespace-pre-wrap {{ "text-amber-800" if query2_modified == '1' }}">{{ english_query | default("") }}</div>
-                        <div id="query2-{{idnum}}" class="col-span-2">{{ query2_html | default("") | safe }}{{ "<br><span class='text-xs text-amber-800'>(NB: manually modified/entered.)</span>" | safe if query2_modified == '1' }}</div>
-                        {% if error %}
-                            <div id="vis-{{idnum}}" class="col-span-10 row-span-2 text-red-500">Error: {{ error }}</div>
-                        {% else %}
-                            {% include row_result_template %}
-                        {% endif %} 
-                        <script type="text/javascript">
-                            document.getElementById("vis-{{idnum}}").scrollIntoView({behavior: "smooth", block: "end", inline: "nearest"});
-                        </script>
+                        {% block query1_row_result %}
+                            <div id="english-{{idnum}}" class="col-span-2 whitespace-pre-wrap {{ "text-amber-800" if query2_modified == '1' }}">{{ english_query | default("") }}</div>
+                        {% endblock query1_row_result %}
+
+                        {% block query2_row_result %}
+                            <div id="query2-{{idnum}}" class="col-span-2">{{ query2_html | default("") | safe }}{{ "<br><span class='text-xs text-amber-800'>(NB: manually modified/entered.)</span>" | safe if query2_modified == '1' }}</div>
+                        {% endblock query2_row_result %}
+
+                        {% block row_result %}
+                            {% if error %}
+                                <div id="vis-{{idnum}}" class="col-span-10 row-span-2 text-red-500">Error: {{ error }}</div>
+                            {% else %}
+                                {% if row_result_template %}
+                                    {% include row_result_template %}
+                                {% else %}
+                                    <div class="col-span-10 row-span-2">row_result_template not set</div>
+                                {% endif %}
+                            {% endif %} 
+                        {% endblock row_result %}
                     </div>
                 {% endif %}
-            {% endblock %}
+            {% endblock plot %}
         </div>
 
-        <section id="inputs" class="grid grid-cols-12 grid-rows-5 justify-stretch items-stretch p-2 gap-y-2 gap-x-4">
-            <form class="col-span-6 row-span-5 grid grid-cols-subgrid grid-rows-subgrid w-full h-full" hx-post="/query1" hx-target="#query2">
-                <div class="col-span-6 w-full text-xl font-medium flex items-end text-gray-900 dark:text-white">English</div>
-                <div class="col-span-6 row-span-3 relative">
-                    <div class='loading-indicator absolute space-x-2 justify-center items-center h-full w-full backdrop-blur-sm rounded-sm border border-gray-300'>
-                        <span class='sr-only'>Loading...</span>
-                        <div class='h-8 w-8 bg-gray-500 rounded-full animate-bounce [animation-delay:-0.3s]'></div>
-                        <div class='h-8 w-8 bg-gray-500 rounded-full animate-bounce [animation-delay:-0.15s]'></div>
-                        <div class='h-8 w-8 bg-gray-500 rounded-full animate-bounce'></div>
-                    </div>
-                    <textarea name="english_query" id="english_query" placeholder="{{ english_query_placeholder | default("Please enter an English query") | e }}" class="w-full h-full p-2 text-gray-900 bg-gray-50 rounded-sm border border-gray-300 focus:ring-blue-500 focus:border-blue-500 resize-none"></textarea>
-                </div>
-                <button id="english_query_button" type="submit" class="col-span-1 col-start-6 bottom-1 right-1 font-medium text-sm px-3 py-1.5 text-white bg-blue-700 rounded-lg focus:ring-4 focus:ring-blue-200">Ask</button>
-            </form>
+        {% block inputs %}
+            <section id="inputs" class="grid grid-cols-12 grid-rows-5 justify-stretch items-stretch p-2 gap-y-2 gap-x-4">
+                {% block query1_form %}
+                    <form class="col-span-6 row-span-5 grid grid-cols-subgrid grid-rows-subgrid w-full h-full" hx-post="/query1" hx-target="#query2">
+                        <div class="col-span-6 w-full text-xl font-medium flex items-end text-gray-900 dark:text-white">{{ query1_header | default("English") }}</div>
+                        <div class="col-span-6 row-span-3 relative">
+                            <div class='loading-indicator absolute space-x-2 justify-center items-center h-full w-full backdrop-blur-sm rounded-sm border border-gray-300'>
+                                <span class='sr-only'>Loading...</span>
+                                <div class='h-8 w-8 bg-gray-500 rounded-full animate-bounce [animation-delay:-0.3s]'></div>
+                                <div class='h-8 w-8 bg-gray-500 rounded-full animate-bounce [animation-delay:-0.15s]'></div>
+                                <div class='h-8 w-8 bg-gray-500 rounded-full animate-bounce'></div>
+                            </div>
+                            {% block query1 %}
+                                {% if query1_template %}
+                                    {% include query1_template %}
+                                {% else %}
+                                    <textarea name="english_query" id="english_query" placeholder="{{ english_query_placeholder | default("Please enter an English query") | e }}" class="w-full h-full p-2 text-gray-900 bg-gray-50 rounded-sm border border-gray-300 focus:ring-blue-500 focus:border-blue-500 resize-none"></textarea>
+                                {% endif %}
+                            {% endblock query1 %}
+                        </div>
+                        <button id="english_query_button" type="submit" class="col-span-1 col-start-6 bottom-1 right-1 font-medium text-sm px-3 py-1.5 text-white bg-blue-700 rounded-lg focus:ring-4 focus:ring-blue-200">Ask</button>
+                    </form>
+                {% endblock query1_form %}
 
-            <form id="query2" class="col-span-6 row-span-5 grid grid-cols-subgrid grid-rows-subgrid w-full h-full" hx-post="/query2" hx-target="#chat" hx-swap="beforeend scroll:bottom" hx-trigger="submit" hx-include="previous [name='english_query']">
-                {% block query2 %}
-                    {% include query2_template %}
-                {% endblock query2 %}
-            </form>
-        </section>
+                {% block query2_form %}
+                    <form id="query2" class="col-span-6 row-span-5 grid grid-cols-subgrid grid-rows-subgrid w-full h-full" hx-post="/query2" hx-target="#chat" hx-swap="beforeend scroll:bottom" hx-trigger="submit" hx-include="previous [name='english_query']">
+                        {% block query2 %}
+                            {% include query2_template %}
+                        {% endblock query2 %}
+                    </form>
+                {% endblock query2_form %}
+            </section>
+        {% endblock inputs %}
     </main>
+    {{ extra_js_scripts | default('') | safe }}
 </body>
 </html>

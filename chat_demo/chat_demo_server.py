@@ -27,11 +27,12 @@ log_http_output()
 
 
 class ChatDemoServer:
-    def __init__(self, templates: Jinja2Blocks, default_context: dict, query1_callback: Callable, query2_callback: Callable):
+    def __init__(self, *, root_template: str = "index.html.jinja", templates: Jinja2Blocks, default_context: dict, query1_callback: Callable, query2_callback: Callable):
         self.app = FastAPI()
         self.app.mount("/static", StaticFiles(directory="dist"), name="static")
         self.query_counter = count(1)
 
+        self.root_template = root_template
         self.templates = templates
         self.default_context = default_context
         self.query1_callback = query1_callback
@@ -41,8 +42,7 @@ class ChatDemoServer:
     def get_templates(templates_path: str):
         """
         Create and return a Jinja2Blocks instance for the given templates path, 
-        including the chat-demo's templates. Children cannot override the main
-        index.html.jinja template. (Rename the child template if you need that.)
+        including the chat-demo's templates. 
         
         :param templates_path: A string or path to the templates directory
         :return: Jinja2Blocks instance
@@ -51,8 +51,8 @@ class ChatDemoServer:
         module_src_dir = current_dir.parent / "src"
        
         loader = jinja2.ChoiceLoader([
-            jinja2.FileSystemLoader(module_src_dir),
-            jinja2.FileSystemLoader(templates_path)
+            jinja2.FileSystemLoader(templates_path),
+            jinja2.FileSystemLoader(module_src_dir)
         ])
         return Jinja2Blocks(directory="IGNORE THIS", loader=loader)
 
@@ -69,7 +69,7 @@ class ChatDemoServer:
         @self.app.get("/")
         async def root(request: Request):
             return self.templates.TemplateResponse(
-                "index.html.jinja",
+                self.root_template,
                 self.default_context | 
                 {"request": request, 
                  "idnum": next(self.query_counter),

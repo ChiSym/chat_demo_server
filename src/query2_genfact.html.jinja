@@ -2,7 +2,7 @@
 <input type="hidden" name="query2_modified" value="1">
 <input type="hidden" id="genfact_entity" name="genfact_entity" value="{{ ml_entity['as_object'] | tojson | forceescape if ml_entity else '' }}">
 <input type="hidden" id="entity_html" name="entity_html" value="{{ ml_entity['entity_html'] | e if ml_entity else '' }}">
-<div class="col-span-6 w-full text-xl font-medium flex items-end text-gray-900 dark:text-white">GenFact</div>
+<div class="col-span-6 w-full text-xl font-medium flex items-end text-gray-900 dark:text-white">Chat-demo</div>
 <div class="col-span-6 row-span-3 relative">
     <div class='loading-indicator absolute space-x-2 justify-center items-center h-full w-full backdrop-blur-sm'>
         <span class='sr-only'>Loading...</span>
@@ -265,3 +265,6 @@
     </div>
     <button id="query2_button" type="submit" class="col-span-1 bottom-1 right-1 font-medium text-sm px-3 py-1.5 text-white bg-blue-700 rounded-lg focus:ring-4 focus:ring-blue-200">Run</button>
 </div>
+<script type="text/javascript">
+    document.getElementById("vis-{{idnum}}").scrollIntoView({behavior: "smooth", block: "end", inline: "nearest"});
+</script>
