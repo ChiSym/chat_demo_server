@@ -5,7 +5,6 @@
     <title>{{ page_title| default("Probcomp demo") | e }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://unpkg.com/htmx.org@1.9.6" integrity="sha384-FhXw7b6AlE/jyjlZH5iHa/tTe9EpJ1Y55RjcgPbjeWMskSxZt1v9qkxLJWNJaGni" crossorigin="anonymous"></script>
-    <link href="{{url_for('static',path='/output.css')}}" rel="stylesheet">
     <script type="importmap">
       {
         "imports": {
@@ -24,7 +23,8 @@
     <script src="https://cdn.jsdelivr.net/npm/vega-lite@5.19.0"></script>
     <script src="https://cdn.jsdelivr.net/npm/vega-embed@6.26.0"></script>
 
-    {# <script src="https://cdn.tailwindcss.com"></script> #}
+    {# Not ideal for production, but easier than figuring out how to to incorporate dep CSS files into tailwind builds. Revisit some day. #}
+    <script src="https://cdn.tailwindcss.com"></script>
 
     {# Required for overlaying loading indicator on top of textareas. Default htmx classes change opacity which messes with layout #}
     <style>
@@ -66,7 +66,7 @@
             <form class="col-span-6 row-span-5 grid grid-cols-subgrid grid-rows-subgrid w-full h-full" hx-post="/query1" hx-target="#query2">
                 <div class="col-span-6 w-full text-xl font-medium flex items-end text-gray-900 dark:text-white">English</div>
                 <div class="col-span-6 row-span-3 relative">
-                    <div class='loading-indicator absolute flex space-x-2 justify-center items-center h-full w-full backdrop-blur-sm rounded-sm border border-gray-300'>
+                    <div class='loading-indicator absolute space-x-2 justify-center items-center h-full w-full backdrop-blur-sm rounded-sm border border-gray-300'>
                         <span class='sr-only'>Loading...</span>
                         <div class='h-8 w-8 bg-gray-500 rounded-full animate-bounce [animation-delay:-0.3s]'></div>
                         <div class='h-8 w-8 bg-gray-500 rounded-full animate-bounce [animation-delay:-0.15s]'></div>

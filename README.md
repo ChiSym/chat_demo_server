@@ -51,6 +51,3 @@ For examples, see the genfact_demo and english_to_iql_demo repos.
 4. `npm install`
 
 5. To start the web server, run `uvicorn chat_demo.main:app --reload`
-6. To work on the Tailwind CSS, run `npx tailwindcss -i ./src/input.css -o ./dist/output.css --watch`
-
-By default, Tailwind only adds necessary CSS classes, so you can't add unused classes in the browser for experimenting. (There's a commented-out line in the template that loads all Tailwind styles, so you can do this, but it messes with the "Loading..." spinner when used.)
