@@ -1,0 +1,44 @@
+<div class="container flex flex-col items-center" hx-target="next .output-display" hx-indicator="next .spinner" x-data="{index: 0, items: {{items}}, choices: {{choices}}, probabilities: {{probabilities}},showOutput:false}">
+    <div class="w-full bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4 flex flex-row">
+      <div class="flex flex-col space-y-4 p-2 my-auto">
+        <div class="flex">
+          <button @click="prevWidget" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 mr-1 rounded flex">
+            <svg class="h-6 w-6" fill="none" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <button @click="nextWidget" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 ml-1 rounded flex">
+            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </div>
+        <form hx-post="output/content" >
+          <input type="hidden" name="qqq" :value="items[index]">
+          <button @click="showOutput=true" class="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+            Search
+          </button>
+        </form>
+      </div>
+      <div class="m-2 w-auto flex">
+        <div class="p-6 border border-gray-300 rounded bg-gray-100 text-gray-800">
+          {% for choice in choices %}
+              <div class="w-full" x-show="index === {{ loop.index0 }}">
+                {{choice | safe}}
+              </div>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="h-full w-64 ml-auto">
+        <canvas class="h-full" x-init="initializeUncertaintyPlot(probabilities, $el); $watch('index',()=>{updateUncertaintyPlot(index, probabilities.length, $el)})"></canvas>
+      </div>
+    </div>
+    <svg class="spinner animate-spin" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>
+    <div x-show="showOutput" class="flex w-full">
+      <div 
+      class="output-display flex w-full"
+      x-transition:enter="transition ease-out duration-500"
+      x-transition:enter-start="opacity-0"
+      x-transition:enter-end="opacity-100"></div>
+    </div>
+</div>
