@@ -58,3 +58,6 @@ For examples, see the genfact_demo and english_to_iql_demo repos.
 3. `poetry shell`
 
 5. To start the web server, run `uvicorn chat_demo.main:app --reload`
+
+## Template Widgets
+The chat row output is entirely configurable, but this repo provides some template widgets for common outputs.
