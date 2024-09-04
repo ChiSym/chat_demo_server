@@ -75,31 +75,37 @@
         {% block inputs %}
             <section id="inputs" class="grid grid-cols-12 grid-rows-5 justify-stretch items-stretch p-2 gap-y-2 gap-x-4">
                 {% block query1_form %}
-                    <form class="col-span-6 row-span-5 grid grid-cols-subgrid grid-rows-subgrid w-full h-full" hx-post="/query1" hx-target="#query2">
-                        <div class="col-span-6 w-full text-xl font-medium flex items-end text-gray-900 dark:text-white">{{ query1_header | default("English") }}</div>
-                        <div class="col-span-6 row-span-3 relative">
-                            <div class='loading-indicator absolute space-x-2 justify-center items-center h-full w-full backdrop-blur-sm rounded-sm border border-gray-300'>
-                                <span class='sr-only'>Loading...</span>
-                                <div class='h-8 w-8 bg-gray-500 rounded-full animate-bounce [animation-delay:-0.3s]'></div>
-                                <div class='h-8 w-8 bg-gray-500 rounded-full animate-bounce [animation-delay:-0.15s]'></div>
-                                <div class='h-8 w-8 bg-gray-500 rounded-full animate-bounce'></div>
-                            </div>
-                            {% block query1 %}
-                                {% if query1_template %}
-                                    {% include query1_template %}
-                                {% else %}
+                    <form id="query1" class="col-span-6 row-span-5 grid grid-cols-subgrid grid-rows-subgrid w-full h-full" hx-post="/query1" hx-target="#query2" {{ extra_query1_form_attrs | default('') | safe }}>
+                        {% block query1 %}
+                            {% if query1_template %}
+                                {% include query1_template %}
+                            {% else %}
+                                <div class="col-span-6 w-full text-xl font-medium flex items-end text-gray-900 dark:text-white">{{ query1_header | default("English") }}</div>
+                                <div class="col-span-6 row-span-3 relative">
+                                    <div class='loading-indicator absolute space-x-2 justify-center items-center h-full w-full backdrop-blur-sm rounded-sm border border-gray-300'>
+                                        <span class='sr-only'>Loading...</span>
+                                        <div class='h-8 w-8 bg-gray-500 rounded-full animate-bounce [animation-delay:-0.3s]'></div>
+                                        <div class='h-8 w-8 bg-gray-500 rounded-full animate-bounce [animation-delay:-0.15s]'></div>
+                                        <div class='h-8 w-8 bg-gray-500 rounded-full animate-bounce'></div>
+                                    </div>
                                     <textarea name="english_query" id="english_query" placeholder="{{ english_query_placeholder | default("Please enter an English query") | e }}" class="w-full h-full p-2 text-gray-900 bg-gray-50 rounded-sm border border-gray-300 focus:ring-blue-500 focus:border-blue-500 resize-none"></textarea>
-                                {% endif %}
-                            {% endblock query1 %}
-                        </div>
-                        <button id="english_query_button" type="submit" class="col-span-1 col-start-6 bottom-1 right-1 font-medium text-sm px-3 py-1.5 text-white bg-blue-700 rounded-lg focus:ring-4 focus:ring-blue-200">Ask</button>
+                                </div>
+                                <button id="english_query_button" type="submit" class="col-span-1 col-start-6 bottom-1 right-1 font-medium text-sm px-3 py-1.5 text-white bg-blue-700 rounded-lg focus:ring-4 focus:ring-blue-200">Ask</button>
+                            {% endif %}
+                        {% endblock query1 %}
                     </form>
                 {% endblock query1_form %}
 
                 {% block query2_form %}
-                    <form id="query2" class="col-span-6 row-span-5 grid grid-cols-subgrid grid-rows-subgrid w-full h-full" hx-post="/query2" hx-target="#chat" hx-swap="beforeend scroll:bottom" hx-trigger="submit" hx-include="previous [name='english_query']">
+                    <form id="query2" class="col-span-6 row-span-5 grid grid-cols-subgrid grid-rows-subgrid w-full h-full" hx-post="/query2" hx-target="#chat" hx-swap="beforeend scroll:bottom" hx-trigger="submit" hx-include="previous [name='english_query']" {{ extra_query2_form_attrs | default('') | safe }}>
                         {% block query2 %}
-                            {% include query2_template %}
+                            {% if query2_template %}
+                                {% include query2_template %}
+                            {% else %}
+                                <div class="col-span-6 row-span-3 relative">
+                                    query2_template not defined
+                                </div>
+                            {% endif %}
                         {% endblock query2 %}
                     </form>
                 {% endblock query2_form %}
