@@ -6,8 +6,13 @@ authors = ["Matthew Davidson <matthew@modulolotus.net>"]
 readme = "README.md"
 packages = [{include = "chat_demo"}]
 include = [
-    { path = "src/index.html.jinja"},
+    { path = "src"},
     { path = "dist/"},
+]
+
+exclude = [
+    {path = "src/query2_genfact.html.jinja"},
+    {path = "src/row_result_genfact.html.jinja"},
 ]
 
 [tool.poetry.dependencies]
