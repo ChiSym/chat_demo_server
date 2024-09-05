@@ -6,8 +6,8 @@ authors = ["Matthew Davidson <matthew@modulolotus.net>"]
 readme = "README.md"
 packages = [{include = "chat_demo"}]
 include = [
-    { path = "src/"},
-    { path = "dist/"},
+    { path = "src/**/*"},
+    { path = "dist/**/*"},
 ]
 
 exclude = [
