@@ -50,6 +50,43 @@ app = server.get_app() # Expose the app for uvicorn CLI
 
 For examples, see the genfact_demo and english_to_iql_demo repos.
 
+### Template Widgets
+The chat row output is entirely configurable, but this repo provides some template widgets for common outputs. Currently there are
+- Tab pages
+- Plots
+- Tables
+- Uncertainty plots
+
+To use a template, set the `row_result_template` to the desired widget:
+```python
+default_context = {"page_title": "My demo",
+                   "row_result_template": "frontend/widgets/fixed_tabs.html.jinja",
+                   ...
+                   }
+```
+
+and pass arguments in the `TemplateResponse`:
+```python
+return templates.TemplateResponse(
+    root_template,
+    default_context | 
+    {"request": request, 
+    ...
+    "tabs": [ # Set tabs names and inner content
+        {
+            "name": "Physicians",
+            "content": "Dr. Smith"
+        },
+        {
+            "name": "Business",
+            "content": "ABC Inc.",
+        }
+    ]
+    },
+    block_name="plot")
+```
+
+
 
 ### Development
 
@@ -58,3 +95,4 @@ For examples, see the genfact_demo and english_to_iql_demo repos.
 3. `poetry shell`
 
 5. To start the web server, run `uvicorn chat_demo.main:app --reload`
+

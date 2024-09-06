@@ -1,0 +1,21 @@
+<div id="vis-{{idnum}}" x-data="{ activeTab: 1 }" class="w-full">
+    <div class="flex">
+        {% for tab in tabs %}
+            <button 
+                @click="activeTab = {{ loop.index }}" 
+                :class="{'bg-blue-500 text-white -mb-px': activeTab === {{ loop.index }}, 'bg-gray-200 text-gray-700': activeTab !== {{ loop.index }}}"
+                class="px-4 py-2 rounded-t-lg text-sm font-medium focus:outline-none transition-all duration-200 ease-in-out transform hover:scale-105 mr-1 mb-1">
+                <span>{{ tab.name }}</span>
+            </button>
+        {% endfor %}
+    </div>
+
+    
+    <div class="w-full bg-white border border-gray-200 rounded-b-lg">
+        {% for tab in tabs %}
+            <div class="w-full" x-show="activeTab === {{ loop.index }}">
+                {{ tab.content | safe}}
+            </div>
+        {% endfor %}
+    </div>
+</div>

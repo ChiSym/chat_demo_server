@@ -1,0 +1,25 @@
+<p class="text-lg">
+    {% for pair in text %}
+        {% if pair.highlight %}
+            <span x-data="{ isHovered: false }" 
+                    @mouseenter="isHovered = true" 
+                    @mouseleave="isHovered = false"
+                    class="inline-block px-1 py-0.5 bg-yellow-200 border border-yellow-400 rounded cursor-pointer transition-all duration-300 ease-in-out relative"
+                    :class="{ 'z-10 scale-125 px-2 py-1': isHovered }">
+                {{ pair.text }}
+                <span x-show="isHovered" 
+                        x-transition:enter="transition ease-out duration-300"
+                        x-transition:enter-start="opacity-0 translate-y-1"
+                        x-transition:enter-end="opacity-100 translate-y-0"
+                        x-transition:leave="transition ease-in duration-150"
+                        x-transition:leave-start="opacity-100 translate-y-0"
+                        x-transition:leave-end="opacity-0 translate-y-1"
+                        class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-48 bg-gray-800 text-white text-sm rounded py-1 px-2 text-center">
+                    {{ pair.tooltip }}
+                </span>
+            </span>
+        {% else %}
+            {{ pair.text }}
+        {% endif %}
+    {% endfor %}
+</p>

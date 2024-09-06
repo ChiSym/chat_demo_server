@@ -1,0 +1,20 @@
+<div class="w-full">
+    <table class="w-full" style="border-collapse: collapse; width: 80%; margin: 20px auto; font-family: Arial, sans-serif;">
+        <thead>
+          <tr style="background-color: #4CAF50; color: white;">
+            {% for column in columns %}
+                <th style="padding: 12px; text-align: left; border: 1px solid #ddd;">{{ column }}</th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+            {% for row in rows %}
+                <tr style="background-color: 'white';">
+                    {% for cell in row %}
+                        <td style="padding: 12px; text-align: left; border: 1px solid #ddd;">{{ cell }}</td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </tbody>
+      </table>
+</div>

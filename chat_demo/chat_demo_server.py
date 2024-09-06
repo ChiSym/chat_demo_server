@@ -29,7 +29,7 @@ log_http_output()
 class ChatDemoServer:
     def __init__(self, *, root_template: str = "index.html.jinja", templates: Jinja2Blocks, default_context: dict, query1_callback: Callable, query2_callback: Callable):
         self.app = FastAPI()
-        self.app.mount("/static", StaticFiles(directory="dist"), name="static")
+        # self.app.mount("/static", StaticFiles(directory="dist"), name="static")
         self.query_counter = count(1)
 
         self.root_template = root_template

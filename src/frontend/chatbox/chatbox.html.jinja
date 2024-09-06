@@ -1,0 +1,24 @@
+
+<div class="bg-white shadow p-4 items-center">
+    <form hx-post="/output" hx-target="#widget-container" hx-swap="beforeend" class="flex items-center" x-data="{ message: '' }" @htmx:after-request="message = ''" >
+    {% include "chatbox/demo_options.html" %}
+        <div class="w-full p-2">
+            <textarea
+                x-model="message"
+                @input="adjustHeight($el)"
+                class="flex-1 w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none overflow-y-auto"
+                placeholder="What do you want to know?"
+                name="query"
+            ></textarea>
+        </div>
+        <div class="flex-shrink-0">
+            <button type="submit" class="p-2 bg-blue-500 text-white rounded">Submit</button>
+        </div>
+    </form>
+</div>
+<script>
+    function adjustHeight(el) {
+        el.style.height = 'auto';
+        el.style.height = (el.scrollHeight <= 150 ? el.scrollHeight : 150) + 'px';
+    }
+</script>
